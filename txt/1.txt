@@ -1,0 +1,316 @@
+import AudioManager from "../AudioManager";
+import PlayerDataSys from "../controller/PlayerDataSys";
+import BaseEventType from "../Event/BaseEventType";
+import EventMgr from "../Event/EventMgr";
+import SdkHelper from "../SdkHelper";
+import { GAME_NAME } from "../SystemConfig";
+import EngineUtil from "../Utils/EngineUtil";
+import AdManager from "./AdManager";
+
+export default class CalliOS {
+    private static _instance: CalliOS = null;
+    private prefix = "HvillJSB";
+    public static getInstance() {
+        if (this._instance == null) this._instance = new CalliOS();
+        return this._instance;
+    }
+
+    /*******************************************Js调用Oc*********************************************** */
+
+    public getNgister(url: string, time: string, nonce_str: string) {
+        let result = jsb.reflection.callStaticMethod(this.prefix, "getNgister:time:nonceStr:", url, time, nonce_str);
+        console.log("getNgister", result);
+        return result;
+    }
+    public getClientInfo(): string {
+        //getCookieInfo
+        var result = jsb.reflection.callStaticMethod(this.prefix, "getClientInfo");
+        return result;
+    }
+    public getCookieInfo(): string {
+        //getCookieInfo
+        var result = jsb.reflection.callStaticMethod(this.prefix, "getCookieInfo");
+        return result;
+    }
+    public getChannelName(): string {
+        return "appStore";
+    }
+    public getVersionName(): string {
+        var result = jsb.reflection.callStaticMethod(this.prefix, "getVersionName");
+        return result;
+    }
+    /**退出应用 */
+    public finishActivity() {
+        jsb.reflection.callStaticMethod(this.prefix, "finishActivity");
+    }
+    public setUserInfo(params) {
+        //getCookieInfo
+        console.log("setUserInfo---", params);
+        jsb.reflection.callStaticMethod(this.prefix, "setUserInfo:", params);
+    }
+
+    public clipBoard(msg) {
+        console.log("clipBoard---", msg);
+        jsb.reflection.callStaticMethod(this.prefix, "clipBoard:", msg);
+    }
+    /**微信登陆
+     *
+     */
+    public wxLogin() {
+        jsb.reflection.callStaticMethod(this.prefix, "wxLogin");
+    }
+    /**调起开屏广告 */
+    public showSplashAd({ bottom }) {
+        jsb.reflection.callStaticMethod(this.prefix, "showSplashAd", String(bottom));
+    }
+    /**调起激励视频广告 */
+    public showRewardVideoAd(params) {
+        //params={id:200123,type:"task_double"}
+        EngineUtil.log("callStaticMethod.showRewardVideoAd ", params);
+        const { is_force } = params;
+        jsb.reflection.callStaticMethod(this.prefix, "showRewardVideoAd:extraInfo:", is_force ? "1" : "0", JSON.stringify(params));
+    }
+
+    /**预加载图文广告 */
+    preLoadImgAd(id, width: number, height: number) {
+        jsb.reflection.callStaticMethod(this.prefix, "preLoadImgAd:height:", String(width), String(height));
+    }
+    /**调用图文广告 */
+    public showImgAd() {
+        console.log("调用图文广告 IOS");
+        jsb.reflection.callStaticMethod(this.prefix, "showImgAd");
+    }
+    public closeImgAd() {
+        jsb.reflection.callStaticMethod(this.prefix, "closeImgAd");
+    }
+    public sendStatue(reviewing: number) {
+        jsb.reflection.callStaticMethod(this.prefix, "sendStatue:", String(reviewing));
+    }
+
+    /**预加载Banner广告 */
+    preLoadBannerAd(id, width: number, height: number) {
+        jsb.reflection.callStaticMethod(this.prefix, "preLoadBannerAd:height:", String(width), String(height));
+    }
+    /**调用Banner广告 */
+    public showBannerAd(left, top: number, right: number, bottom: number, width: number, height: number) {
+        jsb.reflection.callStaticMethod(this.prefix, "showBannerAd:width:height:", String(bottom), String(width), String(height));
+    }
+    public closeBannerAd() {
+        jsb.reflection.callStaticMethod(this.prefix, "closeBannerAd");
+    }
+    /**
+     *
+     * @param force 是否是强弹
+     * 获取视频广告id
+     */
+    public getRewardVideoId(force?) {
+        if (force) return jsb.reflection.callStaticMethod(this.prefix, "to");
+        return jsb.reflection.callStaticMethod(this.prefix, "mobId");
+    }
+    /**
+     * 数据上报
+     * @param event_name 事件名称
+     * @param tobj 对象参数
+     */
+    public reportData(event_name, tobj?, core = false) {
+        var statistics = {};
+        statistics["eventName"] = event_name;
+        let param = [];
+        param.push({ paramName: "ts", paramValue: EngineUtil.getTimeStamp() });
+        param.push({ paramName: "game_name", paramValue: GAME_NAME });
+        if (tobj) {
+            let keyArr = Object.keys(tobj);
+            for (var i = 0; i < keyArr.length; i++) {
+                let paramsItem = {};
+                paramsItem["paramName"] = keyArr[i];
+                paramsItem["paramValue"] = tobj[keyArr[i]];
+                param.push(paramsItem);
+            }
+        }
+        statistics["param"] = param;
+        let str = JSON.stringify(statistics);
+        if (!cc.sys.isNative) return;
+        if (core) {
+            jsb.reflection.callStaticMethod(this.prefix, "reportCoreData:", str);
+            EngineUtil.log("ios", core + "埋点>>>>>>>>>>" + str);
+            return;
+        }
+        jsb.reflection.callStaticMethod(this.prefix, "reportData:", str);
+        EngineUtil.log("ios", core + "埋点>>>>>>>>>>" + str);
+    }
+    public getBlackBox() {
+        //getBlackBox
+        // var result= jsb.reflection.callStaticMethod(this.prefix, "getBlackBox", "()Loc/lang/String;");
+        // return result;
+    }
+
+    public getScreenWidth(): number {
+        let result = jsb.reflection.callStaticMethod(this.prefix, "getScreenWidth");
+        return result;
+    }
+
+    public getScreenHeight(): number {
+        let result = jsb.reflection.callStaticMethod(this.prefix, "getScreenHeight");
+        return result;
+    }
+
+    //大震动
+    public setVibrator() {
+        jsb.reflection.callStaticMethod(this.prefix, "setVibrato");
+    }
+    // 轻微震动
+    public setVibratoLight() {
+        jsb.reflection.callStaticMethod(this.prefix, "setVibratoLight");
+    }
+
+    public cancelVibrator() {
+        // jsb.reflection.callStaticMethod(this.prefix, "cancelVibrator", "()V");
+    }
+
+    public decrypt(data) {
+        return jsb.reflection.callStaticMethod(this.prefix, "decrypt:", data);
+    }
+    public encrypt(data) {
+        return jsb.reflection.callStaticMethod(this.prefix, "encrypt:", data);
+    }
+
+    public openKefu(nickname: string, avatar: string, gender: string) {
+        return jsb.reflection.callStaticMethod(this.prefix, "openKefu");
+    }
+    public showToast(content) {
+        //第一个参数toast内容，第二个参数toast显示时间单位秒，第三个参数偏离中心的位置，传入0，就是在中心显示,值为正向下移动，为负向上移动
+        jsb.reflection.callStaticMethod(this.prefix, "showToast:duration:offsetY:", `${content}`, "2", "300");
+    }
+    public showForceToast(content) {
+        let str = `<html><header><meta name='viewport' content='initial-scale=1.0, maximum-scale=2.0, minimum-scale=1.1, user-scalable=no'></header><body style='text-align:center; display: flex; justify-content: center; align-items: center;'><div><font color='#FFFFFF' style='text-align:center; font-size:26px;'>${content}</font></div></body></html>`;
+        jsb.reflection.callStaticMethod(this.prefix, "showForceToast:duration:", str, "1.5");
+    }
+    //cocos 主动获取网络状态
+    // -1,网络类型未知
+    //  0,无网络
+    //  1,蜂窝
+    //  2, WiFi
+    public getNetworkingStatus() {
+        var ret = jsb.reflection.callStaticMethod(this.prefix, "networkingStatus");
+        console.log("网络状态变化" + ret);
+        return ret;
+    }
+    //获取中台配置
+    public getMiddleConfig() {
+        var result = jsb.reflection.callStaticMethod(this.prefix, "getMiddleConfig");
+        return result;
+    }
+    /*******************************************oc调用Js*********************************************** */
+    public onVideoFailed(params) {
+        AudioManager.getInstance().resumeMusic("mainscreen_bgm", true);
+        AdManager.getInstance().onVideoError(params);
+    }
+    public onVideoClose(params) {
+        AudioManager.getInstance().resumeMusic("mainscreen_bgm", true);
+        AdManager.getInstance().onVideoClose(JSON.parse(params));
+    }
+    public onVideoFinish(params) {
+        AdManager.getInstance().onVideoFinish(params);
+    }
+    public onVideoOpenSuccess(data) {
+        // SdkHelper.reportData('b_look_video_onadshow', null);
+        AudioManager.getInstance().pauseMusic("mainscreen_bgm", true);
+        console.log("Oc调用Js onVideoOpensuccess>>", data);
+    }
+
+    //跳过开屏
+    public onSplashAdSkip() {
+        console.log("onSplashAdSkip");
+        EventMgr.trigger(BaseEventType.SPLASH_FINISH);
+    }
+    //开屏时间结束
+    public onSplashAdclose() {
+        console.log("onSplashAdTimeOver");
+        EventMgr.trigger(BaseEventType.SPLASH_FINISH);
+    }
+    //开屏出错
+    public onSplashAdFailed() {
+        console.log("onSplashAdError");
+        EventMgr.trigger(BaseEventType.SPLASH_FINISH);
+    }
+    //开屏出现
+    public onSplashAdSuccess() {
+        EventMgr.trigger(BaseEventType.SPLASH_SHOW);
+    }
+    public onGetAdInfo(params: any) {
+        console.log("cpmInfo:", JSON.parse(params));
+        // PlayerDataSys.uploadCpm(params);
+        AdManager.getInstance().onGetAdInfo(params);
+    }
+    public onAppStart() {
+        console.log("Oc调用Js onAppStart");
+        this.reportData("app_start", null);
+    }
+    public onAppPause() {
+        console.log("Oc调用Js onAppPause");
+        this.reportData("app_pause", null);
+    }
+
+    public onAppResume() {
+        console.log("Oc调用Js onAppResume");
+        this.reportData("app_resume", null);
+    }
+
+    public onAppStop() {
+        console.log("Oc调用Js onAppStop");
+    }
+
+    public onAppDestory() {
+        console.log("Oc调用Js onAppDestory");
+        this.reportData("app_destory", null);
+    }
+    public onGetWechatCode(code) {
+        console.log("Oc调用Js onGetWechatCode", code);
+        EventMgr.trigger(BaseEventType.GET_WECHAT_CODE, code);
+    }
+
+    public onAttachedToWindow() {
+        console.log("onAttachedToWindow");
+        let result = this.hasNotchInScreen();
+        if (result) {
+            this.setNotchHeight();
+        }
+    }
+
+    public hasNotchInScreen() {
+        let result = jsb.reflection.callStaticMethod(this.prefix, "hasNotchInScreen");
+        console.log("valueGenerate", result);
+        return result;
+    }
+
+    public getNotchHeight() {
+        let notchHeight = jsb.reflection.callStaticMethod(this.prefix, "consequenceCrowd");
+        // let frameSize = cc.view.getFrameSize();
+        // let size = cc.winSize;
+        // SystemConfig.notchHeight = notchHeight * size.height / frameSize.height;
+        // console.log("consequenceCrowd", SystemConfig.notchHeight)
+    }
+
+    public setNotchHeight() {
+        if (this.hasNotchInScreen()) {
+            this.getNotchHeight();
+            // EventMgr.trigger(BaseEventType.NOTCH_HEIGHT_GOT, SystemConfig.notchHeight);
+        }
+    }
+
+    //ios 告诉 cocos 网络状态变化，App刚启动时，window.networkingReachabilityDidChange 方法可能没有加载完成，导致方法调用失败，进入App后，这个方法可以调用成功
+    // -1,网络类型未知
+    //  0,无网络
+    //  1,蜂窝
+    //  2, WiFi
+    public networkingReachabilityDidChange(code) {
+        // console.log('网络状态变化' + code);
+        // EventMgr.trigger(BaseEventType.NETWORK_CHANGE, code);
+    }
+    public onGetConfig(result: string) {
+        console.log("ios调用Js 中台配置 onGetConfigNew", result);
+        EventMgr.trigger(BaseEventType.ON_GET_MIDDLE_CFG, result);
+    }
+}
+
+window.calliOS = CalliOS.getInstance();
