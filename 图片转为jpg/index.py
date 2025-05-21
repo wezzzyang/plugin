@@ -18,7 +18,7 @@ if not os.path.exists(jpg_folder):
     os.makedirs(jpg_folder)
 
 # 定义视频文件的扩展名
-video_extensions = [".png"]
+video_extensions = [".png", ".jpeg"]
 
 # 遍历视频文件夹中的所有文件
 for filename in os.listdir(png_folder):
