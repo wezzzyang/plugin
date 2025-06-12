@@ -32,5 +32,5 @@ for filename in os.listdir(png_folder):
         pngImg = Image.open(video_path)
 
         # 保存图片，使用无损压缩参数
-        pngImg.save(image_path, "JPEG", quality=99, optimize=True)
+        pngImg.save(image_path, "JPEG", quality=95, optimize=True)
         print(f"已保存视频 {filename} 的第一帧为 {os.path.basename(image_path)}")

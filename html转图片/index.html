@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webpage to Image</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</head>
+
+<body>
+    <div id="webpage-container"></div>
+    <button onclick="captureWebsite()">Capture Website as Image</button>
+
+    <script>
+        async function captureWebsite() {
+            const url = prompt("https://jpcgw.monthrev.com/private?package_name=com.jpcgw.yf&version_name=1.0.0.0&channel_name=&device_id=test13ei1klqtno&fd=1&debug=true");
+            if (!url) return;
+
+            try {
+                // Fetch the webpage and insert its contents into a div
+                const response = await fetch(url);
+                const text = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+
+                document.getElementById('webpage-container').innerHTML = doc.body.innerHTML;
+
+                // Capture the container as an image
+                const canvas = await html2canvas(document.getElementById('webpage-container'));
+                const imgData = canvas.toDataURL('image/png');
+
+                // Create a link to download the image
+                const link = document.createElement('a');
+                link.href = imgData;
+                link.download = 'screenshot.png';
+                link.click();
+
+                // Clear the container after capturing
+                document.getElementById('webpage-container').innerHTML = '';
+            } catch (error) {
+                console.error("Failed to capture website:", error);
+                alert("Failed to capture website. Please check the URL and ensure it allows cross-origin access.");
+            }
+        }
+    </script>
+</body>
+
+</html>
