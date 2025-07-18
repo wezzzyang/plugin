@@ -1,6 +1,6 @@
 echo off
 @REM 打包id
-set num=20
+set num=37
 @REM 包名
 set pack=jpcgw
 @REM 打包日期

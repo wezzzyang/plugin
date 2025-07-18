@@ -49,7 +49,7 @@ def getNutType(data: str):
     data = f"{data}"
     arr = data.split(",")
     return {
-        "id": generate_random_string(7),
+        "id": generate_random_string(10),
         "nutType": int(arr[0]),
         "nutObstacleType": int(data.split(",")[1] if len(arr) > 1 else 0),
     }
@@ -57,7 +57,7 @@ def getNutType(data: str):
 
 def getNutScrewType(result: dict[str, str]):
     return {
-        "id": generate_random_string(7),
+        "id": generate_random_string(10),
         "nutScrewType": 0,
         "nutScrewObstacleType": 0,
         "nutScrewHeight": result["screwHeight"],
@@ -71,17 +71,48 @@ def analyzeData(data: list[list[str]], result: dict[str, str], startIndex: int):
 
     resultData = []
 
+    ## 分析是否符合高度值
+    arr = {}
+
     for n in range(screwNum):
         nutScrew = getNutScrewType(result)
         resultData.append(nutScrew)
+
+        nutIndex = data[startIndex + 2][n + 1]
+
+        # print("元素", nutIndex, startIndex + 2, n + 1)
+
+        nutScrewOb = f"{nutIndex}".replace("0.0", "0")
+        nutScrewObArr = nutScrewOb.split(",")
+
+        if len(nutScrewObArr) > 2:
+            nutScrew["nutScrewObstacleType"] = int(int(nutScrewObArr[2]) / 100)
+
+        if nutScrew["nutScrewObstacleType"] == 2:
+            nutScrew["nutScrewObstacleData"] = {
+                "unLockNutType": int(nutScrewObArr[2]) - 200
+            }
+
         for h in range(screwHeight):
             nutIndex = data[startIndex + 2 + h][n + 1]
-            if nutIndex == 0:
+            nutScrewOb = f"{nutIndex}".replace("0.0", "0")
+            nutScrewObArr = nutScrewOb.split(",")
+            if int(nutScrewObArr[0]) == 0:
                 continue
-            if nutIndex == -1:
-                nutScrew["nutScrewType"] = 1
-                continue
-            nutScrew["nuts"].append(getNutType(nutIndex))
+
+            nutData = getNutType(nutIndex)
+            nutScrew["nuts"].append(nutData)
+
+            if nutData['nutType'] not in arr:
+                arr[nutData['nutType']] = 1
+            else:
+                arr[nutData['nutType']] += 1
+
+        nutScrew["nuts"] = nutScrew["nuts"][::-1]
+
+    for i in arr:
+        if screwHeight != arr[i]:
+            print("数量不对 ------------:", i)
 
     return resultData
 
@@ -92,15 +123,16 @@ baseResult = {}
 def splitArr(arr):
     result = []
     length = len(arr)
+    print("长度：", length)
     if length <= 4:
         result.append(arr)
         return result
-    if length > 4 & length <= 10:
+    if length > 4 and length <= 10:
         l = math.ceil(length / 2)
         result.append(arr[:l])
         result.append(arr[l:])
         return result
-    if length > 4 & length > 10:
+    if length > 10:
         l = math.ceil(length / 3)
         result.append(arr[:l])
         result.append(arr[l : 2 * l])
@@ -110,11 +142,10 @@ def splitArr(arr):
 
 for index, arrX in enumerate(df):
     if arrX[0] == "关卡ID":
+        print("关卡：", arrX[1])
         result = getDetailData(arrX)
         baseResult[result["levelId"]] = splitArr(analyzeData(df, result, index))
         continue
-
-print(baseResult)
 
 with open(restore_path, "w", encoding="utf-8") as f:
     f.write(
