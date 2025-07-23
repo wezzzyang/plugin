@@ -54,6 +54,27 @@ class CreateRound {
 
     /** 创建 */
     create() {
+        /** 布帘数量 */
+        this.unKownHideScrewNum = DiffcultConfig.unKownHideScrewNum;
+        /** 问号螺母数量 */
+        this.unkownNutNum = DiffcultConfig.unkownNutNum;
+        /** 石头数量 */
+        this.unMoveScrewNum = DiffcultConfig.unMoveScrewNum;
+        /**  螺柱总数量 （不算广告）（包含布帘和石头）*/
+        this.NutScrewNum = DiffcultConfig.NutScrewNum;
+        /** 广告螺柱数量 */
+        this.adScrewNum = DiffcultConfig.adScrewNum;
+        /** 螺母颜色数量 */
+        this.nutEnumNum = DiffcultConfig.nutEnumNum;
+        /** 螺柱高度 */
+        this.screwHeight = DiffcultConfig.screwHeight;
+        /** 平均高度 */
+        this.avgHeight = DiffcultConfig.avgHeight;
+        /** 双叠加概率 */
+        this.doubleRate = DiffcultConfig.doubleRate;
+        /** 三叠加概率 */
+        this.thirdRate = DiffcultConfig.thirdRate;
+
         if (!this.testError()) return;
         this.nutList = [];
         this.screwList = [];
@@ -159,7 +180,7 @@ class CreateRound {
                 single.nuts.push(nut);
 
                 if (this.unkownNutNum > 0 && single.nuts.length !== this.avgHeight) {
-                    if (Math.random() < 0.9) {
+                    if (Math.random() < 0.95) {
                         this.unkownNutNum--;
                         nut.nutObstacleType = NutObstacleEnum.unkown;
                     }
@@ -189,17 +210,20 @@ class CreateRound {
         if (data.success) {
             // console.log(`关卡检测成功`);
 
-            const num = tttComplete.testDiff(10000, this.screwList);
+            const num: number = tttComplete.testDiff(10000, this.screwList) as number;
 
-            // console.log("关卡成功率：", num);
-
-            const arr = this.splitArr(this.screwList);
-            // fs.writeFileSync("./test.json", JSON.stringify(arr));
-            return {
-                data: arr,
-                successRate: num,
-                step: data.step,
-            };
+            if (num >= DiffcultConfig.minSuccessRate && num <= DiffcultConfig.maxSuccessRate) {
+                // console.log("关卡成功率：", num);
+                const arr = this.splitArr(this.screwList);
+                // fs.writeFileSync("./test.json", JSON.stringify(arr));
+                return {
+                    data: arr,
+                    successRate: num,
+                    step: data.step,
+                };
+            }
+            console.log("关卡成功率太高：");
+            return this.create();
         } else {
             console.log(`关卡检测失败`);
             return this.create();
@@ -315,12 +339,16 @@ class CreateRound {
 // createRound.create();
 
 const arr = [];
-for (let i = 0; i < 10; i++) {
+console.time("创建花费总时间");
+for (let i = 0; i < DiffcultConfig.createRoundNum; i++) {
+    console.time("创建时间");
     console.log(`-------------------第${i + 1}关创建中-------------------`);
     const createRound = new CreateRound();
     const data = createRound.create();
     arr.push(data);
+    console.timeEnd("创建时间");
     console.log(`-------------------第${i + 1}关创建完成-----------------`);
 }
+console.timeEnd("创建花费总时间");
 
 fs.writeFileSync("../关卡数组.json", JSON.stringify(arr));
