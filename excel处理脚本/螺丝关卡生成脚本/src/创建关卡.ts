@@ -160,76 +160,6 @@ class CreateRound {
 
     i = 0;
 
-    /** 放置螺母 */
-    putNut() {
-        for (let i = 0; i < this.NutScrewNum; i++) {
-            const single = this.screwList[i];
-            for (let i = 0; i < this.avgHeight; i++) {
-                const nut = this.randomNut(this.findNewsetNutAndNum(single.nuts));
-                if (!nut) break;
-                if (
-                    single.nutScrewObstacleType === NutScrewObstacleEnum.UnMove &&
-                    (single.nuts[single.nuts.length - 1]?.nutType == nut.nutType || single.nuts.length <= 2)
-                ) {
-                    continue;
-                }
-
-                if (single.nuts.length >= this.screwHeight) {
-                    continue;
-                }
-                single.nuts.push(nut);
-
-                if (this.unkownNutNum > 0 && single.nuts.length !== this.avgHeight) {
-                    if (Math.random() < 0.95) {
-                        this.unkownNutNum--;
-                        nut.nutObstacleType = NutObstacleEnum.unkown;
-                    }
-                }
-            }
-            if (single.nutScrewObstacleType === NutScrewObstacleEnum.Hide) {
-                const nut = this.findCanUnLock();
-
-                single.nutScrewObstacleData = {
-                    unLockNutType: nut?.nutType,
-                };
-                if (!nut) {
-                    single.nutScrewObstacleType = NutScrewObstacleEnum.normal;
-                }
-            }
-        }
-
-        // console.log(`关卡开始检测` + this.i++);
-
-        // const arr = this.splitArr(this.screwList);
-        // fs.writeFileSync("./temp.json", JSON.stringify(arr));
-
-        const tttComplete = new TestComplete(1, Date.now());
-
-        let data = tttComplete.testWin(JSON.parse(JSON.stringify(this.screwList)), []);
-
-        if (data.success) {
-            // console.log(`关卡检测成功`);
-
-            const num: number = tttComplete.testDiff(10000, this.screwList) as number;
-
-            if (num >= DiffcultConfig.minSuccessRate && num <= DiffcultConfig.maxSuccessRate) {
-                // console.log("关卡成功率：", num);
-                const arr = this.splitArr(this.screwList);
-                // fs.writeFileSync("./test.json", JSON.stringify(arr));
-                return {
-                    data: arr,
-                    successRate: num,
-                    step: data.step,
-                };
-            }
-            console.log("关卡成功率太高：");
-            return this.create();
-        } else {
-            console.log(`关卡检测失败`);
-            return this.create();
-        }
-    }
-
     splitArr<T>(arr: T[]): T[][] {
         const result: T[][] = [];
         const length = arr.length;
@@ -334,11 +264,87 @@ class CreateRound {
         }
         return true;
     }
+
+    /** 放置螺母 */
+    putNut() {
+        for (let i = 0; i < this.NutScrewNum; i++) {
+            const single = this.screwList[i];
+            for (let i = 0; i < this.avgHeight; i++) {
+                const nut = this.randomNut(this.findNewsetNutAndNum(single.nuts));
+                if (!nut) break;
+                if (
+                    single.nutScrewObstacleType === NutScrewObstacleEnum.UnMove &&
+                    (single.nuts[single.nuts.length - 1]?.nutType == nut.nutType || single.nuts.length <= 2)
+                ) {
+                    continue;
+                }
+
+                if (single.nuts.length >= this.screwHeight) {
+                    continue;
+                }
+                single.nuts.push(nut);
+
+                if (this.unkownNutNum > 0 && single.nuts.length !== this.avgHeight) {
+                    if (Math.random() < 0.95) {
+                        this.unkownNutNum--;
+                        nut.nutObstacleType = NutObstacleEnum.unkown;
+                    }
+                }
+            }
+            if (single.nutScrewObstacleType === NutScrewObstacleEnum.Hide) {
+                const nut = this.findCanUnLock();
+
+                single.nutScrewObstacleData = {
+                    unLockNutType: nut?.nutType,
+                };
+                if (!nut) {
+                    single.nutScrewObstacleType = NutScrewObstacleEnum.normal;
+                }
+            }
+        }
+
+        // console.log(`关卡开始检测` + this.i++);
+
+        // const arr = this.splitArr(this.screwList);
+        // fs.writeFileSync("./temp.json", JSON.stringify(arr));
+
+        const tttComplete = new TestComplete(DiffcultConfig.avgStep, Date.now());
+
+        let data = tttComplete.testWin(JSON.parse(JSON.stringify(this.screwList)), []);
+
+        if (data.success) {
+            // console.log(`关卡检测成功`);
+
+            const num: number = tttComplete.testDiff(10000, this.screwList) as number;
+
+            if (num >= DiffcultConfig.minSuccessRate && num <= DiffcultConfig.maxSuccessRate) {
+                // console.log("关卡成功率：", num);
+                const arr = this.splitArr(this.screwList);
+                // fs.writeFileSync("./test.json", JSON.stringify(arr));
+                return {
+                    data: arr,
+                    successRate: num,
+                    stepData: data.step[0],
+                    stepNum: data.step.reduce((pre, cur) => pre + cur.length, 0) / data.step.length,
+                };
+            }
+            console.log("关卡成功率太高：");
+            return this.create();
+        } else {
+            console.log(`关卡检测失败`);
+            return this.create();
+        }
+    }
 }
 
 // createRound.create();
 
-const arr = [];
+const arr: {
+    data: NutData[];
+    successRate: number;
+    stepData: number[][][];
+    stepNum: number;
+}[] = [];
 console.time("创建花费总时间");
 for (let i = 0; i < DiffcultConfig.createRoundNum; i++) {
     console.time("创建时间");
@@ -351,4 +357,36 @@ for (let i = 0; i < DiffcultConfig.createRoundNum; i++) {
 }
 console.timeEnd("创建花费总时间");
 
-fs.writeFileSync("../关卡数组.json", JSON.stringify(arr));
+function getCurrentTime(): string {
+    const now = new Date();
+
+    const year = now.getFullYear(); // 年
+    const month = String(now.getMonth() + 1).padStart(2, "0"); // 月（从0开始，所以+1）
+    const day = String(now.getDate()).padStart(2, "0"); // 日
+    const hours = String(now.getHours()).padStart(2, "0"); // 时
+    const minutes = String(now.getMinutes()).padStart(2, "0"); // 分
+    const seconds = String(now.getSeconds()).padStart(2, "0"); // 秒
+
+    return `${month}${day}${hours}${minutes}${seconds}`;
+}
+
+fs.writeFileSync(`./关卡数组${getCurrentTime()}.json`, JSON.stringify(arr));
+
+const excelData: any = [["关卡id", "关卡通关率", "关卡平均步数"]];
+
+arr.forEach((item, index) => {
+    const { successRate, stepNum } = item;
+    excelData.push([index, successRate, stepNum]);
+});
+
+// 将二维数组转换为 CSV 格式的字符串
+const csvContent = '\uFEFF' + excelData.map((row) => row.join(",")).join("\n");
+
+// 写入文件
+fs.writeFile(`./关卡数组${getCurrentTime()}.csv`, csvContent, "utf-8", (err) => {
+    if (err) {
+        console.error("写入文件失败:", err);
+    } else {
+        console.log("CSV 文件已成功生成");
+    }
+});

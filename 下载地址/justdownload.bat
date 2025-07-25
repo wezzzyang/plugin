@@ -20,7 +20,7 @@ set apkUrl=%baseUrl%\justdownload_%RANDOM%%RANDOM%_%file_count%.apk
 
 echo %apkUrl%
 
-set url=http://10.0.20.103/lsgc_android_test/127_dev_apk/com.lsgc.yf/V1.0.0.0(20250723)/com.lsgc.yf_1.0.0.0_20250723_base_release_log%%28t%%29_build127.apk
+set url=https://apps.bytesfield.com/download/basic/cur/2bbecde26fd47d456379012de126a6c55165f1f7
 echo %url%
 
 curl -o %apkUrl% %url%

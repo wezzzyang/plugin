@@ -254,14 +254,14 @@ export class TestComplete {
         this.startTime = startTime;
     }
 
-    successStep: number[][] = [];
+    successSteps: number[][][] = [];
 
-    testWin(baseData: NutData, index: number[][] = []): { success: number; step: number[][] } {
+    testWin(baseData: NutData, index: number[][] = []): { success: number; step: number[][][] } {
         this.recordSucc = 0;
         this.testdata(baseData, index);
         return {
             success: this.recordSucc,
-            step: this.successStep,
+            step: this.successSteps,
         };
     }
 
@@ -292,7 +292,7 @@ export class TestComplete {
     testdata(baseData: NutData, index: number[][] = []) {
         if (this.recordSucceeStep.includes(JSON.stringify(index.slice(0, this.limitLength)))) return false;
         // 检测超时
-        if (Date.now() - this.startTime > 3000 && this.recordSucc == 0) return false;
+        if (Date.now() - this.startTime > 5000) return false;
 
         if (testFail(baseData)) return false;
         // 限制成功次数
@@ -325,7 +325,7 @@ export class TestComplete {
                 if (testSucc(clone)) {
                     this.recordSucc++;
                     if (index.length > 6) this.recordSucceeStep.push(JSON.stringify(index.slice(0, this.limitLength)));
-                    this.successStep = index;
+                    this.successSteps.push(index);
                     // console.log(`完成步骤${this.recordSucc}`, JSON.stringify(index));
                     return true;
                 }

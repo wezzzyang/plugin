@@ -1,6 +1,6 @@
 export const DiffcultConfig = {
     /** 布帘数量 */
-    unKownHideScrewNum: 2,
+    unKownHideScrewNum: 0,
     /** 问号螺母数量 */
     unkownNutNum: 10,
     /** 石头数量 */
@@ -26,7 +26,9 @@ export const DiffcultConfig = {
     /** 一次生成关卡数 */
     createRoundNum: 1,
     /** 最大成功率 */
-    maxSuccessRate: 0,
+    maxSuccessRate: 1,
     /** 最小成功率 */
-    minSuccessRate: 0
+    minSuccessRate: 0,
+    /** 平均步数所需次数 */
+    avgStep: 100,
 };
