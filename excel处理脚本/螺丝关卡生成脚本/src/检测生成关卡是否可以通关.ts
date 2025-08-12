@@ -1,5 +1,7 @@
+import "../types/index.extension";
 import { DiffcultConfig } from "./BaseConfig";
-import { NutData, NutScrewObstacleEnum } from "./enum";
+import { NutData, NutEnum, NutScrewObstacleEnum } from "./enum";
+import roundData from "../create/result_实验组1.json";
 
 function cloneObj<T>(obj: T): T {
     return JSON.parse(JSON.stringify(obj));
@@ -190,7 +192,7 @@ function testCanBeMove(screwMoveIn: NutData[0], screwOut: NutData): NutData {
         if (nutScrewComp.nuts.length == 0) return true;
 
         // 如果 进入得义子 最新得 和 被进入得最新得 不是同一个，并且 被进入得还有椅子，不行
-        if (screwMoveIn.nuts.last.nutType !== nutScrewComp.nuts.last.nutType) {
+        if (screwMoveIn.nuts.last?.nutType !== nutScrewComp.nuts.last?.nutType) {
             // console.log("顶部义子颜色不同无法移动");
             return false;
         }
@@ -200,8 +202,8 @@ function testCanBeMove(screwMoveIn: NutData[0], screwOut: NutData): NutData {
 }
 
 function testFail(screwOut: NutData) {
-    const canMoveArr = [];
-    const stoneArr = [];
+    const canMoveArr: NutData = [];
+    const stoneArr: NutEnum[] = [];
 
     for (let nutScrewComp of screwOut) {
         // 不能有两个相同的石头放到一块
@@ -223,7 +225,7 @@ function testFail(screwOut: NutData) {
 
     if (canMoveArr.length == 0) return false;
 
-    const canMove = [];
+    const canMove: NutData = [];
     const data = screwOut.find((item: NutData[0]) => {
         if (item.nutScrewObstacleType !== NutScrewObstacleEnum.normal && item.nutScrewObstacleType !== NutScrewObstacleEnum.UnMove)
             return false;
@@ -289,10 +291,20 @@ export class TestComplete {
 
     limitLength: number = 1;
 
+    noAd(baseData: NutData) {
+        baseData.forEach((item) => {
+            if (item.nutScrewObstacleType == NutScrewObstacleEnum.AD) {
+                item.nutScrewObstacleType = NutScrewObstacleEnum.normal;
+            }
+        });
+    }
+
     testdata(baseData: NutData, index: number[][] = []) {
         if (this.recordSucceeStep.includes(JSON.stringify(index.slice(0, this.limitLength)))) return false;
+
+        this.noAd(baseData);
         // 检测超时
-        if (Date.now() - this.startTime > 5000) return false;
+        if (Date.now() - this.startTime > 10000) return false;
 
         if (testFail(baseData)) return false;
         // 限制成功次数
@@ -339,3 +351,15 @@ export class TestComplete {
         return false;
     }
 }
+Object.values(roundData).forEach((item, index) => {
+    const round = index + 1;
+    // console.log(`第${round}关开始测试`);
+    const data = new TestComplete(1, Date.now());
+    const result = data.testWin(item.flat());
+
+
+    // result ? console.log("成功") : console.log("失败");
+    if (!result.success) {
+        console.log("失败", `第${round}关`);
+    }
+});
